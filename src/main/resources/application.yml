@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: ApexHire
+
+  profiles:
+    active: dev
