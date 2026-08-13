@@ -1,0 +1,8 @@
+server:
+  port: 9001
+
+spring:
+  data:
+    mongodb:
+      database: ApexHire
+      uri: ${MONGODB_URI:mongodb://localhost:27017}

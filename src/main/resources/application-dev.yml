@@ -1,3 +1,14 @@
 server:
   port: 9000
 
+spring:
+  data:
+    mongodb:
+      database: ApexHire
+      uri: mongodb://localhost:27017
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:900000}
+
+# 900000 ms = 15 minutes.
