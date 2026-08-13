@@ -2,6 +2,7 @@ package com.ApexHire.auth.controller;
 
 import com.ApexHire.auth.dto.*;
 import com.ApexHire.auth.service.AuthService;
+import com.ApexHire.auth.verification.EmailVerificationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final EmailVerificationService emailVerificationService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequestDto request) {
@@ -30,9 +32,7 @@ public class AuthController {
     public ResponseEntity<String> signup(@Valid @RequestBody SignUpRequestDto request) {
 
         authService.signUp(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("User registered successfully");
+        return ResponseEntity.ok("Verification code sent to your email");
     }
 
     @PostMapping("/refresh")
@@ -49,5 +49,11 @@ public class AuthController {
         return ResponseEntity.ok(
                 Map.of("message", "Logged out successfully")
         );
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        emailVerificationService.verifyEmail(request.getEmail(), request.getCode());
+        return ResponseEntity.ok("Email verified successfully");
     }
 }

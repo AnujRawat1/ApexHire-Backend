@@ -29,8 +29,15 @@ public class User {
     private String password;
 
     @Builder.Default
+    private boolean passwordSet = false;
+
+
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     @Builder.Default
     private AuthProvider provider = AuthProvider.EMAIL;
+
+    @Builder.Default
+    private boolean emailVerified = false;
 }

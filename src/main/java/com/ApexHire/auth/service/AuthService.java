@@ -3,6 +3,7 @@ package com.ApexHire.auth.service;
 import com.ApexHire.auth.dto.AuthResponse;
 import com.ApexHire.auth.dto.LoginRequestDto;
 import com.ApexHire.auth.dto.SignUpRequestDto;
+import com.ApexHire.auth.verification.EmailVerificationService;
 import com.ApexHire.security.authentication.CustomUserDetails;
 import com.ApexHire.security.jwt.JwtService;
 import com.ApexHire.token.RefreshToken;
@@ -31,22 +32,22 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final EmailVerificationService emailVerificationService;
 
     public void signUp(SignUpRequestDto request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            log.warn("Signup attempt with existing email: {}", request.getEmail());
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
+            log.warn("Signup attempt with existing email: {}", email);
             throw new RuntimeException("Email already registered");
         }
 
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .roles(Set.of(Role.USER))
-                .provider(AuthProvider.EMAIL)
-                .build();
-
-        userRepository.save(user);
+        // Create pending signup
+        emailVerificationService.createPendingSignup(
+                request.getName(),
+                email,
+                request.getPassword()
+        );
     }
 
     public AuthResponse login(LoginRequestDto request) {
