@@ -26,14 +26,10 @@ public class EmailVerificationService {
     private final VerificationCodeGenerator codeGenerator;
     private final EmailService emailService;
 
-    public void verifyEmail(String email, String code) {
+    public User verifyEmail(String email, String code) {
 
-        PendingSignup pendingSignup = pendingSignupRepository
-                        .findByEmail(email)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "No pending signup found"
-                                ));
+        PendingSignup pendingSignup = pendingSignupRepository.findByEmail(email)
+                                                            .orElseThrow(() -> new RuntimeException("No pending signup found"));
 
         // Check expiration
         if (pendingSignup.getExpiresAt().isBefore(Instant.now())) {
@@ -41,10 +37,9 @@ public class EmailVerificationService {
             throw new RuntimeException("Verification code has expired");
         }
 
-        // Check verification code
-        if (!passwordEncoder.matches(code, pendingSignup.getCodeHash())) {
+        // Check code
+        if (!passwordEncoder.matches(code, pendingSignup.getCodeHash()))
             throw new RuntimeException("Invalid verification code");
-        }
 
         // Create actual user
         User user = User.builder()
@@ -59,10 +54,12 @@ public class EmailVerificationService {
 
         userRepository.save(user);
 
-        // Delete temporary signup
+        // Delete pending signup
         pendingSignupRepository.delete(pendingSignup);
 
         log.info("Email verified successfully for {}", email);
+
+        return user;
     }
 
     public void createPendingSignup(String name, String email, String password) {
@@ -87,5 +84,24 @@ public class EmailVerificationService {
 
         emailService.sendVerificationCode(email, code);
         log.info("Verification Code Sent : {} | Email : {}", code, email);
+    }
+
+    public void resendVerificationCode(String email) {
+
+        PendingSignup pendingSignup = pendingSignupRepository
+                        .findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("No pending signup found for this email"));
+
+        String newCode = codeGenerator.generate();
+
+        pendingSignup.setCodeHash(passwordEncoder.encode(newCode));
+        pendingSignup.setCreatedAt(Instant.now());
+        pendingSignup.setExpiresAt(Instant.now().plusSeconds(10 * 60));
+
+        pendingSignupRepository.save(pendingSignup);
+
+        emailService.sendVerificationCode(email, newCode);
+
+        log.info("Verification Code Resent : {} | Email : {}", newCode, email);
     }
 }
