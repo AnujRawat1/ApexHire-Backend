@@ -5,8 +5,6 @@ import com.ApexHire.user.model.AuthProvider;
 import com.ApexHire.user.model.Role;
 import com.ApexHire.user.model.User;
 import com.ApexHire.user.repository.UserRepository;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;

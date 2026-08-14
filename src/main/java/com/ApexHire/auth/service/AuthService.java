@@ -43,22 +43,14 @@ public class AuthService {
         }
 
         // Create pending signup
-        emailVerificationService.createPendingSignup(
-                request.getName(),
-                email,
-                request.getPassword()
-        );
+        emailVerificationService.createPendingSignup(request.getName(), email, request.getPassword());
     }
 
     public AuthResponse login(LoginRequestDto request) {
 
         try {
-            Authentication authentication =
-                    authenticationManager.authenticate(
-                            new UsernamePasswordAuthenticationToken(
-                                    request.getEmail(),
-                                    request.getPassword()
-                            )
+            Authentication authentication = authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
                     );
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String accessToken  = jwtService.generateToken(userDetails);
