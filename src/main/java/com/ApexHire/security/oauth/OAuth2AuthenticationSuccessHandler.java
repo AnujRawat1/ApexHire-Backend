@@ -1,8 +1,5 @@
 package com.ApexHire.security.oauth;
 
-import com.ApexHire.security.authentication.CustomUserDetails;
-import com.ApexHire.security.jwt.JwtService;
-import com.ApexHire.token.RefreshTokenService;
 import com.ApexHire.user.model.User;
 import com.ApexHire.user.repository.UserRepository;
 import jakarta.servlet.ServletException;

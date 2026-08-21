@@ -1,6 +1,7 @@
 package com.ApexHire.security.jwt;
 
 import com.ApexHire.security.authentication.CustomUserDetailsService;
+import com.ApexHire.security.constants.PublicAPIs;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -63,13 +64,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.equals("/api/health") ||
-                path.startsWith("/api/auth/signup") ||
-                path.startsWith("/api/auth/verify") ||
-                path.startsWith("/api/auth/resend-verification") ||
-                path.startsWith("/api/auth/login") ||
-                path.startsWith("/api/auth/refresh") ||
-                path.startsWith("/api/auth/logout") ||
-                path.startsWith("/api/auth/oauth");
+
+        for (String publicApi : PublicAPIs.PUBLIC_APIS) {
+            if (publicApi.endsWith("/**")) {
+                String basePath = publicApi.substring(0, publicApi.length() - 3);
+                if (path.startsWith(basePath)) {
+                    return true;
+                }
+            } else if (path.equals(publicApi) || path.startsWith(publicApi)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

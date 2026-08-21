@@ -35,3 +35,4 @@ build/
 .env
 Temp.txt
 Temp
+API_DOCUMENTATION.md
