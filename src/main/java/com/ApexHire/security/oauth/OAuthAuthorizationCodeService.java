@@ -56,7 +56,6 @@ public class OAuthAuthorizationCodeService {
         }
 
         if (authorizationCode.getExpiresAt().isBefore(Instant.now())) {
-
             repository.delete(authorizationCode);
             throw new InvalidRefreshTokenException("OAuth authorization code has expired");
         }

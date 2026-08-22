@@ -42,3 +42,6 @@ spring:
     expiration: ${JWT_EXPIRATION:900000}
 
   # 900000 ms = 15 minutes.
+
+frontend:
+  base-url: ${FRONTEND_BASE_URL}

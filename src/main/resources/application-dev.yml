@@ -42,3 +42,6 @@ jwt:
   expiration: ${JWT_EXPIRATION:900000}
 
 # 900000 ms = 15 minutes.
+
+frontend:
+  base-url: http://localhost:5173
