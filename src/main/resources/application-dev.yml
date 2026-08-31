@@ -45,3 +45,16 @@ jwt:
 
 frontend:
   base-url: http://localhost:5173
+
+# Python Resume Service Configuration
+python:
+  resume-service:
+    url: ${PYTHON_RESUME_SERVICE_URL:http://localhost:8000}
+    api-key: ${PYTHON_RESUME_SERVICE_API_KEY:dev-api-key}
+    timeout: ${PYTHON_RESUME_SERVICE_TIMEOUT:120s}
+
+# Resume File Storage Configuration
+resume:
+  file-storage:
+    location: ${RESUME_FILE_STORAGE_LOCATION:storage/resumes}
+    max-size: ${RESUME_MAX_FILE_SIZE:10485760}
