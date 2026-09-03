@@ -5,7 +5,7 @@ spring:
   data:
     mongodb:
       database: ApexHire
-      uri: mongodb://localhost:27017
+      uri: ${MONGODB_URI:mongodb://localhost:27017/ApexHire}
 
   mail:
     host: ${MAIL_HOST}
@@ -44,14 +44,14 @@ jwt:
 # 900000 ms = 15 minutes.
 
 frontend:
-  base-url: http://localhost:5173
+  base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
 
 # Python Resume Service Configuration
 python:
   resume-service:
-    url: ${PYTHON_RESUME_SERVICE_URL:http://localhost:8000}
-    api-key: ${PYTHON_RESUME_SERVICE_API_KEY:dev-api-key}
-    timeout: ${PYTHON_RESUME_SERVICE_TIMEOUT:120s}
+    url: ${PYTHON_RESUME_SERVICE_URL}
+    api-key: ${PYTHON_RESUME_SERVICE_API_KEY}
+    timeout: ${PYTHON_RESUME_SERVICE_TIMEOUT:60s}
 
 # Resume File Storage Configuration
 resume:

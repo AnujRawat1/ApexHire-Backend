@@ -18,10 +18,10 @@ import java.util.UUID;
 public class ResumeFileService {
 
     @Value("${resume.file-storage.location:storage/resumes}")
-    private String storageLocation;
+    private String storageLocation = "storage/resumes";
 
     @Value("${resume.file-storage.max-size:10485760}")
-    private long maxFileSize;
+    private long maxFileSize = 10485760L;
 
     private static final String PDF_CONTENT_TYPE = "application/pdf";
     private static final String PDF_EXTENSION = ".pdf";

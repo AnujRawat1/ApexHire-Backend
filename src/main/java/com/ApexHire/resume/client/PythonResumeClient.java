@@ -39,7 +39,7 @@ public class PythonResumeClient {
 
         try {
             return webClient.post()
-                    .uri(pythonServiceUrl + "/api/v1/resume/analyze")
+                    .uri(pythonServiceUrl + "/api/resume/analyze")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + pythonServiceApiKey)
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                     .bodyValue(request)
