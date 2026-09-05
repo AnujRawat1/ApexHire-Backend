@@ -1,0 +1,11 @@
+package com.ApexHire.resume.exception;
+
+public class ResumeAnalysisException extends RuntimeException {
+    public ResumeAnalysisException(String message) {
+        super(message);
+    }
+
+    public ResumeAnalysisException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}

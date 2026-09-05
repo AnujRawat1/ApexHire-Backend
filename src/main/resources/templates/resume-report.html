@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${report.title + ' — ApexHire Analysis Report'}">ApexHire Resume Analysis Report</title>
+    <style>
+        /* ========================================================
+           ApexHire Resume Analysis Report - Print & PDF Stylesheet
+           Theme: Matches apex-resume-frontend (Violet / Indigo / Slate)
+           ======================================================== */
+        @page {
+            size: A4 portrait;
+            margin: 8mm 10mm 10mm 10mm;
+            @top-right {
+                content: "ApexHire AI · Resume Intelligence";
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-size: 7.5pt;
+                font-weight: 700;
+                color: #7c3aed;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            }
+            @bottom-left {
+                content: "ApexHire Platform · Confidential Career Evaluation";
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-size: 7.5pt;
+                color: #94a3b8;
+            }
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-size: 7.5pt;
+                font-weight: 700;
+                color: #64748b;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #0f172a;
+            background-color: #ffffff;
+            font-size: 9pt;
+            line-height: 1.45;
+        }
+
+        /* ---------------- Layout Utilities ---------------- */
+        .w-full { width: 100%; }
+        .table-layout { display: table; width: 100%; table-layout: fixed; border-collapse: collapse; }
+        .table-row { display: table-row; }
+        .table-cell { display: table-cell; vertical-align: top; }
+        .align-middle { vertical-align: middle; }
+
+        .avoid-break {
+            page-break-inside: avoid;
+        }
+
+        /* ---------------- Header & Branding ---------------- */
+        .report-header {
+            background-color: #5b21b6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .brand-tag {
+            display: inline-block;
+            background-color: #4c1d95;
+            border: 1px solid #7c3aed;
+            border-radius: 2px;
+            padding: 2.5px 8px;
+            font-size: 7.5pt;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #e9d5ff;
+            margin-bottom: 6px;
+        }
+
+        .report-title {
+            font-size: 15pt;
+            font-weight: 800;
+            line-height: 1.25;
+            color: #ffffff;
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+
+        .header-subtext {
+            font-size: 8pt;
+            color: #ddd6fe;
+        }
+
+        .meta-chips-container {
+            margin-top: 8px;
+            border-top: 1px solid #7c3aed;
+            padding-top: 6px;
+        }
+
+        .meta-chip {
+            display: inline-block;
+            background-color: #4c1d95;
+            border: 1px solid #6d28d9;
+            border-radius: 2px;
+            padding: 2.5px 7px;
+            font-size: 7.5pt;
+            color: #e9d5ff;
+            margin-right: 5px;
+            margin-bottom: 2px;
+        }
+        .meta-chip strong {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .overall-box {
+            background-color: #4c1d95;
+            border: 1px solid #7c3aed;
+            border-radius: 6px;
+            padding: 6px 4px;
+            text-align: center;
+        }
+
+        /* ---------------- Score Cards Dashboard ---------------- */
+        .score-dashboard {
+            margin-bottom: 8px;
+        }
+
+        .score-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 6px;
+            text-align: center;
+        }
+
+        .score-card-primary {
+            background-color: #faf5ff;
+            border: 1.5px solid #c084fc;
+        }
+
+        .score-number {
+            font-size: 20pt;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+        }
+
+        .score-total {
+            font-size: 9.5pt;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .score-label {
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        .score-badge {
+            display: inline-block;
+            border-radius: 2px;
+            padding: 2px 6px;
+            font-size: 7pt;
+            font-weight: 700;
+            margin-top: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-primary { background-color: #ede9fe; color: #5b21b6; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-danger  { background-color: #fee2e2; color: #991b1b; }
+
+        .color-high    { color: #059669; }
+        .color-good    { color: #7c3aed; }
+        .color-medium  { color: #d97706; }
+        .color-low     { color: #dc2626; }
+
+        /* ---------------- Executive Summary ---------------- */
+        .summary-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #7c3aed;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }
+
+        .summary-heading {
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #7c3aed;
+            margin-bottom: 2px;
+        }
+
+        .summary-text {
+            font-size: 8.5pt;
+            color: #334155;
+            line-height: 1.45;
+        }
+
+        /* ---------------- Section Card Standard ---------------- */
+        .section-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .section-header {
+            margin-bottom: 6px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .section-title {
+            font-size: 9.5pt;
+            font-weight: 700;
+            color: #0f172a;
+            display: inline-block;
+        }
+
+        /* ---------------- Section Breakdown Bars (Slim Rectangle Line) ---------------- */
+        .progress-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+
+        .progress-label {
+            font-size: 8pt;
+            font-weight: 700;
+            color: #1e293b;
+            padding-bottom: 3px;
+        }
+
+        .progress-value {
+            font-size: 8pt;
+            font-weight: 700;
+            color: #7c3aed;
+            text-align: right;
+            padding-bottom: 3px;
+        }
+
+        .progress-track {
+            background-color: #e2e8f0;
+            border-radius: 0;
+            height: 3px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .progress-fill {
+            background-color: #7c3aed;
+            height: 3px;
+            border-radius: 0;
+        }
+
+        .bullet-list {
+            list-style: none;
+            margin-top: 4px;
+        }
+
+        .bullet-item {
+            position: relative;
+            padding-left: 12px;
+            margin-bottom: 3px;
+            font-size: 8pt;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        .bullet-item::before {
+            content: "–";
+            position: absolute;
+            left: 2px;
+            top: -1px;
+            color: #7c3aed;
+            font-size: 8pt;
+            font-weight: bold;
+        }
+
+        /* ---------------- 2-Column Grid (Strengths & Weaknesses) ---------------- */
+        .two-col-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+            margin-bottom: 8px;
+        }
+
+        .strength-card {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+
+        .strength-title {
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #166534;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .weakness-card {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+
+        .weakness-title {
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #991b1b;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Strengths & Weaknesses Marks - Clean, no circular/oval background */
+        .mark-pos {
+            display: inline-block;
+            color: #16a34a;
+            font-size: 9pt;
+            font-weight: 800;
+            margin-right: 5px;
+            line-height: 1;
+        }
+
+        .mark-neg {
+            display: inline-block;
+            color: #dc2626;
+            font-size: 9pt;
+            font-weight: 800;
+            margin-right: 5px;
+            line-height: 1;
+        }
+
+        .list-entry {
+            font-size: 8pt;
+            color: #334155;
+            margin-bottom: 4px;
+            line-height: 1.35;
+        }
+
+        /* ---------------- Rectangular Chips (Missing Skills & Keywords) ---------------- */
+        .chip {
+            display: inline-block;
+            border-radius: 2px;
+            padding: 2.5px 7px;
+            font-size: 7.5pt;
+            font-weight: 600;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .chip-danger {
+            background-color: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+        }
+
+        .chip-neutral {
+            background-color: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
+        /* ---------------- Recommendations ---------------- */
+        .rec-item {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #7c3aed;
+            border-radius: 4px;
+            padding: 5px 8px;
+            margin-bottom: 4px;
+        }
+
+        .rec-item-high {
+            border-left-color: #ef4444;
+            background-color: #fffafb;
+        }
+
+        .rec-item-medium {
+            border-left-color: #8b5cf6;
+            background-color: #faf5ff;
+        }
+
+        .rec-priority {
+            display: inline-block;
+            font-size: 6.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1px 5px;
+            border-radius: 2px;
+            margin-right: 5px;
+            vertical-align: 1px;
+        }
+
+        .priority-high {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-medium {
+            background-color: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .priority-low {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .rec-title {
+            font-size: 8pt;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .rec-detail {
+            font-size: 7.5pt;
+            color: #475569;
+            margin-top: 2px;
+            line-height: 1.35;
+        }
+
+        /* ---------------- Step By Step Numbered Improvements (No circular shape) ---------------- */
+        .step-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 3px;
+            table-layout: fixed;
+        }
+
+        .step-num-cell {
+            width: 18px;
+            vertical-align: top;
+            padding-right: 4px;
+            padding-top: 0px;
+        }
+
+        .step-num {
+            font-size: 8.5pt;
+            font-weight: 800;
+            color: #7c3aed;
+            line-height: 1.35;
+        }
+
+        .step-text {
+            font-size: 8pt;
+            color: #334155;
+            line-height: 1.35;
+            vertical-align: top;
+            padding-top: 0px;
+            padding-bottom: 4px;
+        }
+
+        /* ---------------- Footer Note ---------------- */
+        .footer-banner {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
+            margin-top: 12px;
+            font-size: 7pt;
+            color: #94a3b8;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================================
+         HERO BANNER
+         ======================================================== -->
+    <div class="report-header avoid-break">
+        <table class="w-full" style="border-collapse: collapse;">
+            <tr>
+                <td style="vertical-align: top;">
+                    <div class="brand-tag">ApexHire · AI Intelligence Platform</div>
+                    <h1 class="report-title" th:text="${report.title != null and !report.title.isEmpty() ? report.title : 'Resume Analysis Report'}">Candidate Resume Evaluation</h1>
+                    <div class="header-subtext">
+                        Comprehensive ATS readiness, skillset mapping, and recruiter evaluation
+                    </div>
+                </td>
+                <td style="width: 95px; text-align: right; vertical-align: top;">
+                    <div class="overall-box">
+                        <div style="font-size: 7pt; text-transform: uppercase; font-weight: 700; color: #ddd6fe;">Overall</div>
+                        <div style="font-size: 20pt; font-weight: 800; color: #ffffff;" th:text="${analysis.overallScore}">85</div>
+                        <div style="font-size: 6.5pt; color: #f5f3ff;">OUT OF 100</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Metadata Row -->
+        <div class="meta-chips-container">
+            <span class="meta-chip">
+                Target Role: <strong th:text="${report.targetRole}">Full Stack Engineer</strong>
+            </span>
+            <span class="meta-chip">
+                Experience: <strong th:text="${report.experienceLevel}">Mid-Level</strong>
+            </span>
+            <span class="meta-chip" th:if="${formattedDate}">
+                Analyzed: <strong th:text="${formattedDate}">Sep 05, 2026</strong>
+            </span>
+            <span class="meta-chip" th:if="${report.fileName}">
+                File: <strong th:text="${report.fileName}">resume.pdf</strong>
+                <span th:if="${formattedFileSize != null}" th:text="'(' + ${formattedFileSize} + ')'"></span>
+            </span>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         EXECUTIVE SCORE DASHBOARD (3-COLUMN)
+         ======================================================== -->
+    <div class="score-dashboard avoid-break">
+        <table class="table-layout" style="border-spacing: 8px 0; border-collapse: separate; margin: 0 -4px;">
+            <tr>
+                <!-- Overall Score Card -->
+                <td class="table-cell">
+                    <div class="score-card score-card-primary">
+                        <div class="score-label">Overall Quality</div>
+                        <div class="score-number" th:classappend="${analysis.overallScore >= 80 ? 'color-high' : (analysis.overallScore >= 60 ? 'color-good' : 'color-low')}">
+                            <span th:text="${analysis.overallScore}">85</span><span class="score-total">/100</span>
+                        </div>
+                        <span class="score-badge"
+                              th:classappend="${analysis.overallScore >= 80 ? 'badge-success' : (analysis.overallScore >= 60 ? 'badge-primary' : 'badge-danger')}"
+                              th:text="${analysis.overallScore >= 85 ? 'Exceptional' : (analysis.overallScore >= 70 ? 'Strong Candidate' : (analysis.overallScore >= 55 ? 'Competitive' : 'Needs Optimization'))}">
+                            Strong Candidate
+                        </span>
+                    </div>
+                </td>
+
+                <!-- ATS Compatibility Score Card -->
+                <td class="table-cell">
+                    <div class="score-card">
+                        <div class="score-label">ATS Compatibility</div>
+                        <div class="score-number" th:classappend="${analysis.atsScore >= 80 ? 'color-high' : (analysis.atsScore >= 60 ? 'color-good' : 'color-low')}">
+                            <span th:text="${analysis.atsScore}">90</span><span class="score-total">/100</span>
+                        </div>
+                        <span class="score-badge"
+                              th:classappend="${analysis.atsScore >= 80 ? 'badge-success' : (analysis.atsScore >= 60 ? 'badge-primary' : 'badge-warning')}"
+                              th:text="${analysis.atsScore >= 80 ? 'ATS Friendly' : (analysis.atsScore >= 60 ? 'Moderate Fit' : 'High Risk')}">
+                            ATS Friendly
+                        </span>
+                    </div>
+                </td>
+
+                <!-- Job Match Score Card -->
+                <td class="table-cell">
+                    <div class="score-card">
+                        <div class="score-label">Role / Job Match</div>
+                        <div class="score-number" th:classappend="${analysis.jobMatchScore != null ? (analysis.jobMatchScore >= 80 ? 'color-high' : (analysis.jobMatchScore >= 60 ? 'color-good' : 'color-medium')) : 'color-good'}">
+                            <span th:text="${analysis.jobMatchScore != null ? analysis.jobMatchScore : '—'}">78</span><span class="score-total" th:if="${analysis.jobMatchScore != null}">/100</span>
+                        </div>
+                        <span class="score-badge"
+                              th:classappend="${analysis.jobMatchScore != null ? (analysis.jobMatchScore >= 80 ? 'badge-success' : (analysis.jobMatchScore >= 60 ? 'badge-primary' : 'badge-warning')) : 'badge-primary'}"
+                              th:text="${analysis.jobMatchScore != null ? (analysis.jobMatchScore >= 80 ? 'Target Aligned' : (analysis.jobMatchScore >= 60 ? 'Relevant' : 'Partial Match')) : 'General Profile'}">
+                            Relevant
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ========================================================
+         EXECUTIVE SUMMARY
+         ======================================================== -->
+    <div class="summary-card avoid-break" th:if="${analysis.summary != null and !analysis.summary.isEmpty()}">
+        <div class="summary-heading">Executive AI Assessment</div>
+        <div class="summary-text" th:text="${analysis.summary}">
+            Candidate demonstrates a well-rounded background with proven experience across modern stacks. High impact metrics and concise bullet points make this resume standout to recruiters.
+        </div>
+    </div>
+
+    <!-- ========================================================
+         SECTION BREAKDOWN & CRITERIA
+         ======================================================== -->
+    <div class="section-card avoid-break" th:if="${analysis.sections != null and !analysis.sections.isEmpty()}">
+        <div class="section-header">
+            <h2 class="section-title">Resume Section Breakdown</h2>
+        </div>
+
+        <table class="w-full" style="border-collapse: collapse;">
+            <tr th:each="sec : ${analysis.sections}">
+                <td style="padding-bottom: 8px;">
+                    <table class="progress-table">
+                        <tr>
+                            <td class="progress-label" th:text="${sec.title != null and !sec.title.isEmpty() ? sec.title : sec.key}">Experience</td>
+                            <td class="progress-value" th:text="${sec.score + ' / 100'}">85 / 100</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="progress-track">
+                                    <div class="progress-fill"
+                                         th:style="'width: ' + ${sec.score} + '%;' + (${sec.score >= 80} ? ' background-color: #059669;' : (${sec.score >= 60} ? ' background-color: #7c3aed;' : ' background-color: #e11d48;'))">
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div th:if="${sec.summary != null and !sec.summary.isEmpty()}" style="font-size: 8pt; color: #64748b; margin-top: 1px;" th:text="${sec.summary}">
+                        Strong chronological flow and clear role distinctions.
+                    </div>
+
+                    <ul class="bullet-list" th:if="${sec.points != null and !sec.points.isEmpty()}">
+                        <li class="bullet-item" th:each="pt : ${sec.points}" th:text="${pt}">
+                            Bullet point detail
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ========================================================
+         STRENGTHS & WEAKNESSES (2-COLUMN)
+         ======================================================== -->
+    <div class="avoid-break" th:if="${(analysis.strengths != null and !analysis.strengths.isEmpty()) or (analysis.weaknesses != null and !analysis.weaknesses.isEmpty())}">
+        <table class="two-col-table">
+            <tr>
+                <!-- Strengths Column -->
+                <td class="table-cell" style="width: 50%; vertical-align: top;">
+                    <div class="strength-card">
+                        <div class="strength-title">Key Strengths</div>
+                        <div th:if="${analysis.strengths == null or analysis.strengths.isEmpty()}" style="font-size: 7.5pt; color: #166534;">
+                            No specific strengths recorded.
+                        </div>
+                        <div class="list-entry" th:each="s : ${analysis.strengths}">
+                            <span class="mark-pos">+</span>
+                            <span th:text="${s}">Strong leadership in project execution</span>
+                        </div>
+                    </div>
+                </td>
+
+                <!-- Weaknesses Column -->
+                <td class="table-cell" style="width: 50%; vertical-align: top;">
+                    <div class="weakness-card">
+                        <div class="weakness-title">Areas for Improvement</div>
+                        <div th:if="${analysis.weaknesses == null or analysis.weaknesses.isEmpty()}" style="font-size: 7.5pt; color: #991b1b;">
+                            No significant weaknesses detected.
+                        </div>
+                        <div class="list-entry" th:each="w : ${analysis.weaknesses}">
+                            <span class="mark-neg">&#8211;</span>
+                            <span th:text="${w}">Quantifiable metrics could be more explicit in later roles</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ========================================================
+         SKILLS & KEYWORDS GAP RADAR
+         ======================================================== -->
+    <div class="section-card avoid-break" th:if="${(analysis.missingSkills != null and !analysis.missingSkills.isEmpty()) or (analysis.missingKeywords != null and !analysis.missingKeywords.isEmpty())}">
+        <div class="section-header">
+            <h2 class="section-title">ATS & Skills Gap Radar</h2>
+        </div>
+
+        <table class="w-full" style="border-collapse: collapse;">
+            <tr>
+                <!-- Missing Skills -->
+                <td style="width: 50%; vertical-align: top; padding-right: 10px;" th:if="${analysis.missingSkills != null and !analysis.missingSkills.isEmpty()}">
+                    <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #be123c; margin-bottom: 5px; letter-spacing: 0.5px;">
+                        Recommended Skills to Add
+                    </div>
+                    <div>
+                        <span class="chip chip-danger" th:each="skill : ${analysis.missingSkills}" th:text="${skill}">Docker</span>
+                    </div>
+                </td>
+
+                <!-- Missing Keywords -->
+                <td style="width: 50%; vertical-align: top;" th:if="${analysis.missingKeywords != null and !analysis.missingKeywords.isEmpty()}">
+                    <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 5px; letter-spacing: 0.5px;">
+                        Recommended ATS Keywords
+                    </div>
+                    <div>
+                        <span class="chip chip-neutral" th:each="kw : ${analysis.missingKeywords}" th:text="${kw}">CI/CD Pipelines</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ========================================================
+         AI RECOMMENDATIONS
+         ======================================================== -->
+    <div class="section-card avoid-break" th:if="${analysis.recommendations != null and !analysis.recommendations.isEmpty()}">
+        <div class="section-header">
+            <h2 class="section-title">Actionable AI Recommendations</h2>
+        </div>
+
+        <div class="rec-item"
+             th:each="rec : ${analysis.recommendations}"
+             th:classappend="${rec.priority != null and (rec.priority.name() == 'HIGH' or rec.priority.value == 'high') ? 'rec-item-high' : (rec.priority != null and (rec.priority.name() == 'MEDIUM' or rec.priority.value == 'medium') ? 'rec-item-medium' : '')}">
+            <div>
+                <span class="rec-priority"
+                      th:classappend="${rec.priority != null and (rec.priority.name() == 'HIGH' or rec.priority.value == 'high') ? 'priority-high' : (rec.priority != null and (rec.priority.name() == 'MEDIUM' or rec.priority.value == 'medium') ? 'priority-medium' : 'priority-low')}"
+                      th:text="${rec.priority != null ? (rec.priority.value != null ? rec.priority.value : rec.priority.name()) : 'RECOMMENDED'}">HIGH</span>
+                <span class="rec-title" th:text="${rec.title}">Highlight Quantifiable Business Impact</span>
+            </div>
+            <div class="rec-detail" th:text="${rec.detail}">
+                Add specific metrics such as percentages or revenue figures to demonstrate the outcome of your accomplishments.
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         SUGGESTED NEXT IMPROVEMENTS
+         ======================================================== -->
+    <div class="section-card avoid-break" th:if="${analysis.improvements != null and !analysis.improvements.isEmpty()}">
+        <div class="section-header">
+            <h2 class="section-title">Priority Rewrite Checklist</h2>
+        </div>
+
+        <table class="step-table" th:each="imp, stat : ${analysis.improvements}">
+            <tr>
+                <td class="step-num-cell">
+                    <div class="step-num" th:text="${stat.count + '.'}">1.</div>
+                </td>
+                <td class="step-text" th:text="${imp}">
+                    Incorporate active verbs at the beginning of each bullet statement.
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- ========================================================
+         FOOTER BANNER
+         ======================================================== -->
+    <div class="footer-banner avoid-break">
+        <div>Generated by <strong>ApexHire AI Platform</strong> · Career Mentorship & Intelligent Resume Review</div>
+        <div style="margin-top: 1px;">This report provides advisory recommendations to optimize ATS ranking and hiring team engagement.</div>
+    </div>
+
+</body>
+</html>

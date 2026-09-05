@@ -42,3 +42,19 @@ spring:
     expiration: ${JWT_EXPIRATION:900000}
 
   # 900000 ms = 15 minutes.
+
+frontend:
+  base-url: ${FRONTEND_BASE_URL}
+
+# Python Resume Service Configuration
+python:
+  resume-service:
+    url: ${PYTHON_RESUME_SERVICE_URL}
+    api-key: ${PYTHON_RESUME_SERVICE_API_KEY}
+    timeout: ${PYTHON_RESUME_SERVICE_TIMEOUT:120s}
+
+# Resume File Storage Configuration
+resume:
+  file-storage:
+    location: ${RESUME_FILE_STORAGE_LOCATION:storage/resumes}
+    max-size: ${RESUME_MAX_FILE_SIZE:10485760}
