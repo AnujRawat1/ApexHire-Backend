@@ -88,4 +88,33 @@ class ResumeControllerTest {
         mockMvc.perform(get("/api/resumes/reports/test-id"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void downloadReportPdf_Authenticated_ReturnsPdf() throws Exception {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "test@example.com", "password", List.of(new SimpleGrantedAuthority("ROLE_USER"))
+        );
+        User mockUser = User.builder().id("user123").email("test@example.com").build();
+        com.ApexHire.resume.document.ResumeReport mockReport = com.ApexHire.resume.document.ResumeReport.builder()
+                .id("report-1")
+                .title("Full Stack Developer")
+                .build();
+        byte[] mockPdf = "%PDF-mock-content".getBytes();
+
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockUser));
+        when(resumeService.getReportEntity("report-1", "user123")).thenReturn(mockReport);
+        when(resumeService.getReportPdf("report-1", "user123")).thenReturn(mockPdf);
+
+        mockMvc.perform(get("/api/resumes/reports/report-1/download-report")
+                        .principal(auth))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().contentType(org.springframework.http.MediaType.APPLICATION_PDF))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"Full_Stack_Developer.pdf\""));
+    }
+
+    @Test
+    void downloadReportPdf_Unauthenticated_ReturnsUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/resumes/reports/report-1/download-report"))
+                .andExpect(status().isUnauthorized());
+    }
 }

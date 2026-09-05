@@ -24,6 +24,7 @@ public class ResumeService {
 
     private final ResumeReportRepository resumeReportRepository;
     private final ResumeFileService resumeFileService;
+    private final ResumeReportPdfService resumeReportPdfService;
 
     public PaginatedReportsResponse getUserReports(
             String userId,
@@ -119,6 +120,20 @@ public class ResumeService {
         }
 
         return resumeFileService.retrieveFile(report.getFileStorageKey());
+    }
+
+    public byte[] getReportPdf(String id, String userId) {
+        log.info("Generating PDF report download: reportId={}, userId={}", id, userId);
+
+        ResumeReport report = resumeReportRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResumeNotFoundException("Report not found"));
+
+        return resumeReportPdfService.generateReportPdf(report);
+    }
+
+    public ResumeReport getReportEntity(String id, String userId) {
+        return resumeReportRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new ResumeNotFoundException("Report not found"));
     }
 
     private Sort createSort(String sort) {

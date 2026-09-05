@@ -140,6 +140,36 @@ public class ResumeController {
     }
 
     @Operation(
+            summary = "Download analysis report PDF",
+            description = "Generate and download a beautifully styled PDF analysis report"
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping({"/reports/{id}/download-report", "/reports/{id}/download"})
+    public ResponseEntity<byte[]> downloadReportPdf(
+            @PathVariable String id,
+            Authentication authentication
+    ) {
+        String userId = getUserId(authentication);
+        ResumeReport report = resumeService.getReportEntity(id, userId);
+        byte[] pdfBytes = resumeService.getReportPdf(id, userId);
+
+        String filename = sanitizeFilename(report.getTitle() != null ? report.getTitle() : "Resume_Analysis_Report") + ".pdf";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(pdfBytes);
+    }
+
+    private String sanitizeFilename(String name) {
+        if (name == null || name.isBlank()) {
+            return "Resume_Analysis_Report";
+        }
+        String clean = name.trim().replaceAll("[^a-zA-Z0-9\\-_\\s]", "").replaceAll("\\s+", "_");
+        return clean.isEmpty() ? "Resume_Analysis_Report" : clean;
+    }
+
+    @Operation(
             summary = "Update report",
             description = "Update report metadata (title)"
     )

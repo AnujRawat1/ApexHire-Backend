@@ -115,7 +115,21 @@ GET /api/resumes/reports/507f1f77bcf86cd799439011
 GET /api/resumes/reports/507f1f77bcf86cd799439011/file
 ```
 
-### 7. Delete Report (DELETE)
+### 7. Download Analysis Report PDF (GET)
+**Endpoint:** `GET /api/resumes/reports/{id}/download-report`  
+*Alias:* `GET /api/resumes/reports/{id}/download`  
+**Authentication:** Bearer Token required  
+**Response:** `application/pdf` (Attachment with filename `{Report_Title}.pdf`)
+
+**Path parameter:**
+- `id`: String (MongoDB ObjectId)
+
+**Example:**
+```
+GET /api/resumes/reports/507f1f77bcf86cd799439011/download-report
+```
+
+### 8. Delete Report (DELETE)
 **Endpoint:** `DELETE /api/resumes/reports/{id}`  
 **Authentication:** Bearer Token required
 
