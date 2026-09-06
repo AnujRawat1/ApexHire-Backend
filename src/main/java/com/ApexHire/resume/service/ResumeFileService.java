@@ -17,8 +17,8 @@ import java.util.UUID;
 @Slf4j
 public class ResumeFileService {
 
-    @Value("${resume.file-storage.location:storage/resumes}")
-    private String storageLocation = "storage/resumes";
+    @Value("${resume.file-storage.location:storage}")
+    private String storageLocation = "storage";
 
     @Value("${resume.file-storage.max-size:10485760}")
     private long maxFileSize = 10485760L;
@@ -33,14 +33,15 @@ public class ResumeFileService {
         String originalFilename = file.getOriginalFilename();
         String storedFilename = fileId + PDF_EXTENSION;
 
-        Path userStoragePath = Paths.get(storageLocation, userId);
-        Path filePath = userStoragePath.resolve(storedFilename);
+        // Structured storage: storage/{userId}/resume/{storedFilename}
+        Path userResumeDir = Paths.get(storageLocation, userId, "resume");
+        Path filePath = userResumeDir.resolve(storedFilename);
 
         try {
-            Files.createDirectories(userStoragePath);
+            Files.createDirectories(userResumeDir);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            String fileStorageKey = Paths.get(userId, storedFilename).toString();
+            String fileStorageKey = Paths.get(userId, "resume", storedFilename).toString();
 
             log.info("Stored resume file: userId={}, fileId={}, originalFilename={}, size={}",
                     userId, fileId, originalFilename, file.getSize());
@@ -54,10 +55,7 @@ public class ResumeFileService {
 
     public byte[] retrieveFile(String fileStorageKey) {
         try {
-            Path filePath = Paths.get(storageLocation, fileStorageKey);
-            if (!Files.exists(filePath)) {
-                throw new ResumeFileException("File not found: " + fileStorageKey);
-            }
+            Path filePath = resolveFilePath(fileStorageKey);
             return Files.readAllBytes(filePath);
         } catch (IOException e) {
             log.error("Failed to retrieve resume file: fileStorageKey={}", fileStorageKey, e);
@@ -67,15 +65,35 @@ public class ResumeFileService {
 
     public void deleteFile(String fileStorageKey) {
         try {
-            Path filePath = Paths.get(storageLocation, fileStorageKey);
-            if (Files.exists(filePath)) {
-                Files.delete(filePath);
-                log.info("Deleted resume file: fileStorageKey={}", fileStorageKey);
-            }
-        } catch (IOException e) {
+            Path filePath = resolveFilePath(fileStorageKey);
+            Files.deleteIfExists(filePath);
+            log.info("Deleted resume file: fileStorageKey={}", fileStorageKey);
+        } catch (Exception e) {
             log.error("Failed to delete resume file: fileStorageKey={}", fileStorageKey, e);
             throw new ResumeFileException("Failed to delete resume file", e);
         }
+    }
+
+    private Path resolveFilePath(String fileStorageKey) {
+        // 1. Direct path from storage location: storage/{fileStorageKey}
+        Path p1 = Paths.get(storageLocation, fileStorageKey);
+        if (Files.exists(p1)) return p1;
+
+        // 2. If fileStorageKey was legacy "userId/fileId.pdf", check storage/{userId}/resume/{fileId.pdf}
+        if (!fileStorageKey.contains("resume")) {
+            String updatedKey = fileStorageKey.replaceFirst("^([^/\\\\]+)[/\\\\]", "$1/resume/");
+            Path p2 = Paths.get(storageLocation, updatedKey);
+            if (Files.exists(p2)) return p2;
+        }
+
+        // 3. Fallback to old storage/resumes/ directory
+        Path p3 = Paths.get(storageLocation, "resumes", fileStorageKey);
+        if (Files.exists(p3)) return p3;
+
+        Path p4 = Paths.get("storage", "resumes", fileStorageKey);
+        if (Files.exists(p4)) return p4;
+
+        throw new ResumeFileException("File not found: " + fileStorageKey);
     }
 
     private void validateFile(MultipartFile file) {

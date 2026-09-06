@@ -56,5 +56,5 @@ python:
 # Resume File Storage Configuration
 resume:
   file-storage:
-    location: ${RESUME_FILE_STORAGE_LOCATION:storage/resumes}
+    location: ${RESUME_FILE_STORAGE_LOCATION:storage}
     max-size: ${RESUME_MAX_FILE_SIZE:10485760}

@@ -25,6 +25,7 @@ public class ResumeService {
     private final ResumeReportRepository resumeReportRepository;
     private final ResumeFileService resumeFileService;
     private final ResumeReportPdfService resumeReportPdfService;
+    private final com.ApexHire.storage.LocalStorageService localStorageService;
 
     public PaginatedReportsResponse getUserReports(
             String userId,
@@ -105,6 +106,9 @@ public class ResumeService {
             }
         }
 
+        // Also delete cached report PDF from storage/{userId}/resume_report/
+        localStorageService.deleteReportPdf(userId, id);
+
         resumeReportRepository.deleteByIdAndUserId(id, userId);
         log.info("Report deleted successfully: reportId={}", id);
     }
@@ -123,12 +127,20 @@ public class ResumeService {
     }
 
     public byte[] getReportPdf(String id, String userId) {
-        log.info("Generating PDF report download: reportId={}, userId={}", id, userId);
+        log.info("Fetching or generating PDF report download: reportId={}, userId={}", id, userId);
+
+        byte[] cachedPdf = localStorageService.getReportPdf(userId, id);
+        if (cachedPdf != null && cachedPdf.length > 0) {
+            log.info("Serving PDF report from local storage cache: userId={}, reportId={}", userId, id);
+            return cachedPdf;
+        }
 
         ResumeReport report = resumeReportRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResumeNotFoundException("Report not found"));
 
-        return resumeReportPdfService.generateReportPdf(report);
+        byte[] generatedPdf = resumeReportPdfService.generateReportPdf(report);
+        localStorageService.saveReportPdf(userId, id, generatedPdf);
+        return generatedPdf;
     }
 
     public ResumeReport getReportEntity(String id, String userId) {
